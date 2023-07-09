@@ -11,4 +11,11 @@ userRoutes.post(
   }
 );
 
+userRoutes.post(
+  "/login",
+  (request: Request, response: Response, next: NextFunction) => {
+    return userController.login(request, response);
+  }
+);
+
 export default userRoutes;
