@@ -3,11 +3,13 @@ import { prisma } from "../service/prisma";
 import { TAdmin } from "../utils/admin";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import { checkIfUserExist } from "../utils/user-exist";
+import { checkIfAdminExist } from "../utils/admin-exist";
 
 const secret_key = "login";
 
 class AdminController {
-  async createAdmin(request: Request, response: Response) {
+  async createAdmin(request: Request, response: Response): Promise<Response> {
     try {
       const { name, email, password, confirmPassword } = request.body;
       if (password !== confirmPassword) {
@@ -36,7 +38,7 @@ class AdminController {
     }
   }
 
-  async login(request: Request, response: Response) {
+  async login(request: Request, response: Response): Promise<Response> {
     try {
       const { email, password } = request.body;
       const checkAdmin: any = await prisma.admin.findUnique({
@@ -69,6 +71,125 @@ class AdminController {
     } catch (error: unknown) {
       return response.status(400).json({
         message: "Error!",
+        error: error,
+      });
+    }
+  }
+
+  async showAllUsers(request: Request, response: Response): Promise<Response> {
+    try {
+      const users = await prisma.user.findMany();
+      return response.status(200).json({
+        message: "Users",
+        results: users,
+      });
+    } catch (error: unknown) {
+      return response.status(400).json({
+        message: "Error!",
+        error: error,
+      });
+    }
+  }
+
+  async showUserById(user_id: number, response: Response): Promise<Response> {
+    try {
+      const check = await checkIfUserExist(user_id);
+      if (!check) {
+        return response.status(400).json({
+          message: "Error: user not found!",
+          result: {},
+        });
+      }
+      const user = await prisma.user.findUnique({
+        where: { user_id },
+      });
+      return response.status(200).json({
+        message: "User returned successfully!",
+        result: user,
+      });
+    } catch (error: unknown) {
+      return response.status(400).json({
+        message: "Error!",
+        error: error,
+      });
+    }
+  }
+
+  async showAdminById(admin_id: number, response: Response): Promise<Response> {
+    try {
+      const check = await checkIfAdminExist(admin_id);
+      if (!check) {
+        return response.status(400).json({
+          message: "Error: user not found!",
+          result: {},
+        });
+      }
+      const admin = await prisma.admin.findUnique({
+        where: { admin_id },
+      });
+      return response.status(200).json({
+        message: "Admin returned successfully!",
+        result: admin,
+      });
+    } catch (error: unknown) {
+      return response.status(400).json({
+        message: "Error!",
+        error: error,
+      });
+    }
+  }
+
+  async updateAdmin(request: Request, response: Response): Promise<Response> {
+    try {
+      const admin_id = parseInt(request.params.id);
+      const adminRequest = request.body;
+
+      let adminExist = await checkIfAdminExist(admin_id);
+      if (!adminExist) {
+        return response.status(400).json({
+          message: "Error: user not found!",
+          result: {},
+        });
+      }
+
+      const updateUser = await prisma.admin.update({
+        where: {
+          admin_id,
+        },
+        data: adminRequest,
+      });
+      return response.status(200).json({
+        message: "User data successfully updated!",
+        result: updateUser,
+      });
+    } catch (error: unknown) {
+      return response.status(400).json({
+        message: "Error!",
+        error: error,
+      });
+    }
+  }
+
+  async deleteUser(user_id: number, response: Response): Promise<Response> {
+    try {
+      let userExist = await checkIfUserExist(user_id);
+      if (!userExist) {
+        return response.status(400).json({
+          message: "Error: user not found!",
+          result: {},
+        });
+      }
+
+      const delUser = await prisma.user.delete({
+        where: { user_id },
+      });
+      return response.status(200).json({
+        message: "User deleted successfully!",
+        result: delUser,
+      });
+    } catch (error: unknown) {
+      return response.status(400).json({
+        message: "Error: user not found!",
         error: error,
       });
     }

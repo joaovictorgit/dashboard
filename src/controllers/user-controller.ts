@@ -3,6 +3,7 @@ import bcrypt from "bcrypt";
 import { TUser } from "../utils/user";
 import { prisma } from "../service/prisma";
 import jwt from "jsonwebtoken";
+import { checkIfUserExist } from "../utils/user-exist";
 
 const secret_key = "login";
 
@@ -78,6 +79,61 @@ class UserController {
           secret_key,
           { expiresIn: "1h" }
         ),
+      });
+    } catch (error: unknown) {
+      return response.status(400).json({
+        message: "Error!",
+        error: error,
+      });
+    }
+  }
+
+  async updateUser(request: Request, response: Response): Promise<Response> {
+    try {
+      const user_id = parseInt(request.params.id);
+      const userRequest = request.body;
+
+      let userExist = await checkIfUserExist(user_id);
+      if (!userExist) {
+        return response.status(400).json({
+          message: "Error: user not found!",
+          result: {},
+        });
+      }
+
+      const updateUser = await prisma.user.update({
+        where: {
+          user_id,
+        },
+        data: userRequest,
+      });
+      return response.status(200).json({
+        message: "User data successfully updated!",
+        result: updateUser,
+      });
+    } catch (error: unknown) {
+      return response.status(400).json({
+        message: "Error!",
+        error: error,
+      });
+    }
+  }
+
+  async showUserById(user_id: number, response: Response): Promise<Response> {
+    try {
+      const check = await checkIfUserExist(user_id);
+      if (!check) {
+        return response.status(400).json({
+          message: "Error: user not found!",
+          result: {},
+        });
+      }
+      const user = await prisma.user.findUnique({
+        where: { user_id },
+      });
+      return response.status(200).json({
+        message: "User returned successfully!",
+        result: user,
       });
     } catch (error: unknown) {
       return response.status(400).json({
