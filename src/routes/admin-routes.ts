@@ -63,4 +63,19 @@ adminRoutes.delete(
   }
 );
 
+adminRoutes.post(
+  "/",
+  (request: Request, response: Response, next: NextFunction) => {
+    return adminController.createUser(request, response);
+  }
+);
+
+adminRoutes.patch(
+  "/:id",
+  authenticationAdmin,
+  (request: Request, response: Response, next: NextFunction) => {
+    return adminController.updateUser(request, response);
+  }
+);
+
 export default adminRoutes;

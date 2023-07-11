@@ -29,6 +29,7 @@ model Admin {
   name String 
   email String @unique 
   password String 
+  photo String
   createAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
