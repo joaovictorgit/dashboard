@@ -21,16 +21,14 @@ adminRoutes.post(
 );
 
 adminRoutes.get(
-  "/",
-  authenticationAdmin,
+  "/users/",
   (request: Request, response: Response, next: NextFunction) => {
     return adminController.showAllUsers(request, response);
   }
 );
 
 adminRoutes.get(
-  "/:id",
-  authenticationAdmin,
+  "/user/:id",
   (request: Request, response: Response, next: NextFunction) => {
     const id = parseInt(request.params.id);
     return adminController.showUserById(id, response);
@@ -64,7 +62,7 @@ adminRoutes.delete(
 );
 
 adminRoutes.post(
-  "/",
+  "/user",
   (request: Request, response: Response, next: NextFunction) => {
     return adminController.createUser(request, response);
   }
