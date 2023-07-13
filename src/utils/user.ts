@@ -5,5 +5,4 @@ export interface TUser {
   subscribed: string;
   channel: string;
   category: string;
-  photo: string;
 }

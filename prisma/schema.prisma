@@ -18,10 +18,9 @@ model User {
   subscribed String 
   channel String 
   category String 
-  photo String
   createAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+  image Image[]
 }
 
 model Admin {
@@ -29,7 +28,15 @@ model Admin {
   name String 
   email String @unique 
   password String 
-  photo String
   createAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+model Image {
+  image_id Int @id @default(autoincrement())
+  name String
+  imageBuffer Bytes
+  id_user Int
+  user User @relation(fields: [id_user], references: [user_id])
+}
+

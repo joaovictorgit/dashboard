@@ -1,7 +1,9 @@
 import express, { NextFunction, Request, Response } from "express";
 import AdminController from "../controllers/admin-controller";
 import authenticationAdmin from "../middleware/authentication-admin";
-
+import multer, { Multer } from "multer";
+import { request } from "http";
+const upload: Multer = multer({ dest: "uploads/" });
 const adminController = new AdminController();
 const adminRoutes = express.Router();
 
@@ -14,7 +16,6 @@ adminRoutes.post(
 
 adminRoutes.post(
   "/",
-  authenticationAdmin,
   (request: Request, response: Response, next: NextFunction) => {
     return adminController.createAdmin(request, response);
   }
@@ -44,6 +45,21 @@ adminRoutes.get(
   }
 );
 
+adminRoutes.post(
+  "/:id/upload",
+  upload.single("image"),
+  (request: Request, response: Response, next: NextFunction) => {
+    return adminController.uploadImage(request, response);
+  }
+);
+
+adminRoutes.get(
+  "/image/:id",
+  (request: Request, response: Response, next: NextFunction) => {
+    return adminController.getImageByUserId(request, response);
+  }
+);
+
 adminRoutes.patch(
   "/:id",
   authenticationAdmin,
@@ -69,7 +85,7 @@ adminRoutes.post(
 );
 
 adminRoutes.patch(
-  "/:id",
+  "/user/:id",
   authenticationAdmin,
   (request: Request, response: Response, next: NextFunction) => {
     return adminController.updateUser(request, response);

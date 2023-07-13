@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { prisma } from "../service/prisma";
 import { TAdmin } from "../utils/admin";
 import bcrypt from "bcrypt";
+import fs from "fs";
 import jwt from "jsonwebtoken";
 import { checkIfUserExist } from "../utils/user-exist";
 import { checkIfAdminExist } from "../utils/admin-exist";
@@ -24,7 +25,6 @@ class AdminController {
         name,
         email,
         password: newPass,
-        photo: "",
       };
 
       const admin = await prisma.admin.create({ data: aux });
@@ -207,7 +207,6 @@ class AdminController {
         subscribed,
         channel,
         category,
-        photo,
       } = request.body;
       if (password !== confirmPassword) {
         return response.status(400).json({
@@ -223,7 +222,6 @@ class AdminController {
         subscribed,
         channel,
         category,
-        photo,
       };
       const user = await prisma.user.create({ data: aux });
 
@@ -234,6 +232,67 @@ class AdminController {
     } catch (error: unknown) {
       return response.status(400).json({
         message: "Error creating user!",
+        error: error,
+      });
+    }
+  }
+
+  async uploadImage(request: Request, response: Response): Promise<Response> {
+    try {
+      const id = parseInt(request.params.id);
+      let userExist = await checkIfUserExist(id);
+      if (!userExist) {
+        return response.status(400).json({
+          message: "Error: user not found!",
+          result: {},
+        });
+      }
+      const image: any = request.file;
+      const imageBuffer = fs.readFileSync(image.path, {
+        flag: "r",
+      });
+      const savedImage = await prisma.image.create({
+        data: {
+          name: JSON.stringify(image?.originalname),
+          imageBuffer: imageBuffer,
+          id_user: id,
+        },
+      });
+
+      return response.status(201).json({
+        message: "Image saved successfully!",
+        result: savedImage,
+      });
+    } catch (error: unknown) {
+      return response.status(400).json({
+        message: "Error upload image!",
+        error: error,
+      });
+    }
+  }
+
+  async getImageByUserId(
+    request: Request,
+    response: Response
+  ): Promise<Response> {
+    try {
+      const id = parseInt(request.params.id);
+      let userExist = await checkIfUserExist(id);
+      if (!userExist) {
+        return response.status(400).json({
+          message: "Error: user not found!",
+          result: {},
+        });
+      }
+      const image = await prisma.image.findFirst({ where: { id_user: id } });
+      if (!image) {
+        return response.status(404).json({ error: "Image not found" });
+      }
+      response.setHeader("Content-Type", "image/jpeg");
+      return response.status(200).send(image.imageBuffer);
+    } catch (error: unknown) {
+      return response.status(400).json({
+        message: "Error upload image!",
         error: error,
       });
     }
