@@ -84,7 +84,7 @@ adminRoutes.post(
   }
 );
 
-adminRoutes.patch(
+adminRoutes.put(
   "/user/:id",
   authenticationAdmin,
   (request: Request, response: Response, next: NextFunction) => {
